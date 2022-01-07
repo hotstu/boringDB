@@ -25,6 +25,9 @@ class Info(private val clazz: Class<*>, val tableName: String, val fields: Map<S
                     append(fields[s]!!.toSqliteType())
                     if (fields[s]?.getAnnotation(Column::class.java)?.primaryKey == true) {
                         append(" PRIMARY KEY")
+                        if (fields[s]?.getAnnotation(Column::class.java)?.autoIncrement == true) {
+                            append(" AUTOINCREMENT")
+                        }
                     }
                     if (index < sorted.size - 1) {
                         append(", ")
@@ -59,6 +62,9 @@ fun Field.toSqliteType(): String {
 //    https://www.sqlite.org/datatype3.html
     return when {
         this.type.isAssignableFrom(Int::class.java) -> {
+            "INTEGER"
+        }
+        this.type.isAssignableFrom(Long::class.java) -> {
             "INTEGER"
         }
         this.type.isAssignableFrom(Float::class.java) || this.type.isAssignableFrom(Double::class.java) -> {
@@ -128,7 +134,7 @@ class DBSession(private val path: String, vararg tables: KClass<*>) {
                     val info = retrieveInfo(entity::class.java)
                     val sqlBuilder = StringBuilder()
                     sqlBuilder.append("INSERT OR ABORT INTO `${info.tableName}` (")
-                    val sorted = info.fields.keys.sorted()
+                    val sorted = info.fields.filter { it.value.getAnnotation(Column::class.java)?.autoIncrement != true }.keys.sorted()
                     sorted.forEachIndexed { index, s ->
                         sqlBuilder.append(" `")
                         sqlBuilder.append(s)
@@ -197,11 +203,14 @@ class DBSession(private val path: String, vararg tables: KClass<*>) {
                     //"UPDATE OR ABORT `camera_log` SET `id` = ?,`status` = ?,`ctime` = ?,`etime` = ? WHERE `id` = ?";
                     sqlBuilder.append("UPDATE OR ABORT `${info.tableName}` SET ")
                     val sorted = info.fields.keys.sorted()
-                    sorted.forEachIndexed { index, s ->
+                    val notPrimaryList = sorted.filter {
+                        info.fields[it]?.getAnnotation(Column::class.java) ?.primaryKey != true
+                    }
+                    notPrimaryList.forEachIndexed { index, s ->
                         sqlBuilder.append(" `")
                         sqlBuilder.append(s)
                         sqlBuilder.append("` = ?")
-                        if (index < sorted.size - 1) {
+                        if (index < notPrimaryList.size - 1) {
                             sqlBuilder.append(", ")
                         }
                     }
@@ -227,7 +236,7 @@ class DBSession(private val path: String, vararg tables: KClass<*>) {
                     val properties = info.props.map {
                         it.name to it
                     }.toMap()
-                    (sorted + primaryKeys).forEachIndexed { index, p ->
+                    (notPrimaryList + primaryKeys).forEachIndexed { index, p ->
                         setParam(stmt, index + 1, properties[p]!!.readMethod.invoke(entity))
                     }
 

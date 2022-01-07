@@ -65,7 +65,7 @@ annotation class Entity(
 @Target(AnnotationTarget.FIELD)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class Column(
-        val name: String = "", val primaryKey: Boolean = false
+        val name: String = "", val primaryKey: Boolean = false, val autoIncrement: Boolean = false
 )
 
 
