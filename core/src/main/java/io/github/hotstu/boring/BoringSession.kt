@@ -218,7 +218,7 @@ class DBSession(private val path: String, vararg tables: KClass<*>) {
                     val info = retrieveInfo(entity::class.java)
                     val sqlBuilder = StringBuilder()
                     //"UPDATE OR ABORT `camera_log` SET `id` = ?,`status` = ?,`ctime` = ?,`etime` = ? WHERE `id` = ?";
-                    sqlBuilder.append("UPDATE OR ABORT `${info.tableName}` SET ")
+                    sqlBuilder.append("UPDATE OR ${(annotation as Insert).strategy} `${info.tableName}` SET ")
                     val sorted = info.fields.keys.sorted()
                     val notPrimaryList = sorted.filter {
                         info.fields[it]?.getAnnotation(Column::class.java) ?.primaryKey != true

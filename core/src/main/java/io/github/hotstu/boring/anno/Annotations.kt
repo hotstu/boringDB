@@ -60,7 +60,7 @@ annotation class Dao
 @Retention(AnnotationRetention.RUNTIME)
 annotation class Entity(
         val tableName: String = "",
-        val unique: Array<String>  = []
+        val unique: Array<String> = []
 )
 
 @Target(AnnotationTarget.FIELD)
@@ -81,14 +81,34 @@ annotation class Query(
 
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
-annotation class Insert(val strategy: String = "ABORT") {
+annotation class Insert(
+        /**
+         * one of
+         * ABORT
+         * FAIL
+         * IGNORE
+         * REPLACE
+         * ROLLBACK
+         */
+        val strategy: String = "ABORT"
+) {
 
 }
 
 
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
-annotation class Update()
+annotation class Update(
+        /**
+         * one of
+         * ABORT
+         * FAIL
+         * IGNORE
+         * REPLACE
+         * ROLLBACK
+         */
+        val strategy: String = "ABORT"
+)
 
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.RUNTIME)
