@@ -3,6 +3,7 @@ package io.github.hotstu.boring
 import io.github.hotstu.boring.anno.Column
 import io.github.hotstu.boring.anno.Entity
 import io.github.hotstu.boring.anno.Insert
+import org.slf4j.LoggerFactory
 import java.beans.IntrospectionException
 import java.beans.Introspector
 import java.beans.PropertyDescriptor
@@ -105,6 +106,7 @@ interface ResultSetResolver<T> {
 class DBSession(private val path: String, vararg tables: KClass<*>) {
     private var connection: Connection?
     private val entityInfos: Map<Class<*>, Info>
+    private val logger = LoggerFactory.getLogger(DatabaseBuilder::class.java)
 
     init {
         entityInfos = tables.map {
@@ -115,7 +117,7 @@ class DBSession(private val path: String, vararg tables: KClass<*>) {
             statement.queryTimeout = 30 // set timeout to 30 sec.
             entityInfos.forEach {
                 val sql = it.value.createTable
-                println("sql====>${sql}")
+                logger.info("sql====>${sql}")
                 statement.executeUpdate(it.value.createTable)
             }
         }
@@ -167,7 +169,7 @@ class DBSession(private val path: String, vararg tables: KClass<*>) {
                     }
                     sqlBuilder.append(")")
                     val sql = sqlBuilder.toString()
-                    println("sql===>${sql}")
+                    logger.info("sql===>${sql}")
                     val stmt = connection!!.prepareStatement(sql)
                     val properties = info.props.map {
                         it.name to it
@@ -200,7 +202,7 @@ class DBSession(private val path: String, vararg tables: KClass<*>) {
                         }
                     }
                     val sql = sqlBuilder.toString()
-                    println("sql===>${sql}")
+                    logger.info("sql===>${sql}")
                     val stmt = connection!!.prepareStatement(sql)
 
                     val properties = info.props.map {
@@ -246,7 +248,7 @@ class DBSession(private val path: String, vararg tables: KClass<*>) {
                         }
                     }
                     val sql = sqlBuilder.toString()
-                    println("sql===>${sql}")
+                    logger.info("sql===>${sql}")
                     val stmt = connection!!.prepareStatement(sql)
                     val properties = info.props.map {
                         it.name to it
@@ -290,7 +292,7 @@ class DBSession(private val path: String, vararg tables: KClass<*>) {
                 stmt.setDouble(index, v)
             }
             else -> {
-                println("暂不支持的数据参数类型:${v::class.java}")
+                logger.info("暂不支持的数据参数类型:${v::class.java}")
             }
         }
     }

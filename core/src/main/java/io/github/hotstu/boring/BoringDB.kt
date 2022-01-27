@@ -3,6 +3,7 @@ package io.github.hotstu.boring
 import io.github.hotstu.boring.anno.*
 import io.github.hotstu.boring.util.handlers.BeanHandler
 import io.github.hotstu.boring.util.handlers.BeanListHandler
+import org.slf4j.LoggerFactory
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
 import java.lang.reflect.ParameterizedType
@@ -11,6 +12,8 @@ import java.sql.ResultSet
 
 
 class DatabaseBuilder<T>(private val clazz: Class<T>) {
+
+    private val logger = LoggerFactory.getLogger(DatabaseBuilder::class.java)
 
     var path: String = "boring.db"
     fun build(): T {
@@ -34,7 +37,7 @@ class DatabaseBuilder<T>(private val clazz: Class<T>) {
                         val returnType = method.returnType
                         //method.genericReturnType
                         if (returnType.isAnnotationPresent(Dao::class.java)) {
-                            println("创建代理Dao对象: ${returnType}")
+                            logger.info("创建代理Dao对象: ${returnType}")
                             return DaoBuilder(returnType)
                                     .session(dbSession)
                                     .build()
@@ -47,6 +50,7 @@ class DatabaseBuilder<T>(private val clazz: Class<T>) {
 
 class DaoBuilder<T : @Dao Any>(private val clazz: Class<T>) {
     private var mSession: DBSession? = null
+    private val logger = LoggerFactory.getLogger(DatabaseBuilder::class.java)
 
     fun session(session: DBSession): DaoBuilder<T> {
         mSession = session
@@ -70,15 +74,15 @@ class DaoBuilder<T : @Dao Any>(private val clazz: Class<T>) {
                         }
                         val annotations = method.annotations
                         if (annotations.isNullOrEmpty()) {
-                            System.err.println("dao中不被注解的方法不被处理")
+                            logger.error("dao中不被注解的方法不被处理")
                             return null
                         }
                         if (annotations.size > 1) {
-                            System.err.println("dao中一个方法只允许被一个注解")
+                            logger.error("dao中一个方法只允许被一个注解")
                         }
 
                         val ano = annotations[0]
-                        println("invoke:${method}->${args}")
+                        logger.info("invoke:${method}->${args}")
                         when (ano) {
                             is Insert -> {
                                 return performInsert(args!![0], ano)

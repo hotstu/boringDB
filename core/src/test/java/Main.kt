@@ -1,5 +1,6 @@
 import io.github.hotstu.boring.DatabaseBuilder
 import io.github.hotstu.boring.anno.*
+import org.slf4j.LoggerFactory
 
 @Database(version = 1,
         entities = [
@@ -45,11 +46,13 @@ interface AppDao {
 
 
 object Main {
+    private val logger = LoggerFactory.getLogger(DatabaseBuilder::class.java)
+
     @JvmStatic
     fun main(args: Array<String>) {
         val database = DatabaseBuilder(AppDatabase::class.java).build()
         val dao: AppDao = database.appDao()
-        println("dao = ${dao}")
+        logger.info("dao = ${dao}")
         val user = User(
                 name = "zhangshan2"
         )
@@ -58,13 +61,13 @@ object Main {
                 name = "admin"
         ))
         val list = dao.query()
-        println("查询结果:$list,count=${dao.count()}")
+        logger.info("查询结果:$list,count=${dao.count()}")
         dao.update(list[0].apply {
             name = "法外狂徒"
         })
-        println(dao.queryById(list[0]!!.id))
-        println("查询结果:${dao.query()}")
+        logger.info("${dao.queryById(list[0]!!.id)}")
+        logger.info("查询结果:${dao.query()}")
         dao.delete(list[0])
-        println("查询结果:${dao.query()}")
+        logger.info("查询结果:${dao.query()}")
     }
 }
