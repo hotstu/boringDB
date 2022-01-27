@@ -1,37 +1,20 @@
-BoringDB
-================
+import io.github.hotstu.boring.DatabaseBuilder
+import io.github.hotstu.boring.anno.*
 
-A light and simple ORM framework for SQLite.
-
-
-### major feature
-
-* Based on JDBC
-
-* Object oriented operation
-
-* Across platforms, NOT Android limited
-
-* auto transform to Java Bean
-
-
-### Example
-
-```kotlin
 @Database(version = 1,
         entities = [
             User::class
         ])
-interface AppDatabase : BaseDateBase {
+interface AppDatabase {
     fun appDao(): AppDao
 }
 
-@Entity(tableName = "user")
+@Entity(tableName = "user", unique = ["name"])
 data class User(
-        @Column(primaryKey = true) var id: String,
+        @Column(primaryKey = true, autoIncrement = true) var id: Long = 0,
         var name: String
 ) {
-    constructor():this(id = "", name = "")
+    constructor():this(id = 0, name = "")
 
     override fun toString(): String {
         return "id=${id},name=${name}"
@@ -45,7 +28,7 @@ interface AppDao {
     fun query(): List<User>
 
     @Query("select * from user WHERE id = ?")
-    fun queryById(id: String): User
+    fun queryById(id: Long): User
 
     @Query("select COUNT(*) from user")
     fun count(): Int
@@ -66,28 +49,22 @@ object Main {
     fun main(args: Array<String>) {
         val database = DatabaseBuilder(AppDatabase::class.java).build()
         val dao: AppDao = database.appDao()
+        println("dao = ${dao}")
         val user = User(
-            id = "233",
-            name = "zhangshan2"
+                name = "zhangshan2"
         )
         dao.add(user)
         dao.add(User(
-            id = "1",
-            name = "admin"
+                name = "admin"
         ))
-        println("查询结果:${dao.query()},count=${dao.count()}")
-        dao.update(user.apply {
+        val list = dao.query()
+        println("查询结果:$list,count=${dao.count()}")
+        dao.update(list[0].apply {
             name = "法外狂徒"
         })
-        println(dao.queryById("233"))
+        println(dao.queryById(list[0]!!.id))
         println("查询结果:${dao.query()}")
-        dao.delete(user)
+        dao.delete(list[0])
         println("查询结果:${dao.query()}")
     }
 }
-```
-
-TODO
-
-* Flow support
-* Error Default Behaviour

@@ -1,0 +1,13 @@
+def properties = new Properties()
+properties.load(new FileInputStream(project.file('project.properties')))
+
+project.ext {
+    mavGitUrl =  properties.getProperty("project.gitUrl")
+    mavProjectName = properties.getProperty("project.name")
+    mavLibraryLicenses = ["Apache-2.0":'http://www.apache.org/licenses/LICENSE-2.0.txt']
+    mavLibraryDescription = properties.getProperty("project.desc")
+    mavPublishToMavenLocal = true
+    mavSiteUrl = properties.getProperty("project.siteUrl")
+}
+
+apply from: rootProject.file('gradle-mavenizer.gradle')
